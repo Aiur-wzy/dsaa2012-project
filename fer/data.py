@@ -1,5 +1,5 @@
 import os
-from typing import Callable, Dict, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -32,6 +32,7 @@ class FER2013Dataset(Dataset):
         usage: Optional[str] = None,
         transform: Optional[Callable] = None,
         in_chans: int = 1,
+        return_group: bool = False,
     ) -> None:
         if isinstance(csv_or_df, str):
             if not os.path.exists(csv_or_df):
@@ -46,11 +47,18 @@ class FER2013Dataset(Dataset):
         self.df = df
         self.transform = transform
         self.in_chans = in_chans
+        self.return_group = return_group
+
+        # Assign deterministic synthetic "age-like" groups for fairness analysis.
+        rng = np.random.default_rng(42)
+        self.synthetic_age_groups: List[str] = rng.choice(
+            ["teen", "adult", "senior"], size=len(self.df)
+        ).tolist()
 
     def __len__(self) -> int:  # pragma: no cover - trivial
         return len(self.df)
 
-    def __getitem__(self, idx: int) -> Tuple[torch.Tensor, int]:
+    def __getitem__(self, idx: int) -> Tuple[torch.Tensor, int] | Tuple[torch.Tensor, int, str]:
         row = self.df.iloc[idx]
         label = int(row["emotion"])
         pixels = np.fromstring(row["pixels"], sep=" ", dtype=np.float32)
@@ -73,6 +81,10 @@ class FER2013Dataset(Dataset):
             tensor = torch.from_numpy(np.transpose(image, (2, 0, 1))).float()
         else:
             tensor = image
+
+        if self.return_group:
+            group_label = self.synthetic_age_groups[idx]
+            return tensor, label, group_label
 
         return tensor, label
 
