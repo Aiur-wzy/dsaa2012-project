@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, Tuple
+from typing import Callable, Dict, Iterable, List, Optional, Tuple
 
 import pandas as pd
 import torch
@@ -52,24 +52,70 @@ def train_one_epoch(
     return running_loss / total, correct / total
 
 
-def evaluate(model: nn.Module, loader: DataLoader, criterion: nn.Module, device: torch.device) -> Tuple[float, float]:
+def evaluate(
+    model: nn.Module,
+    loader: DataLoader,
+    criterion: nn.Module,
+    device: torch.device,
+    return_details: bool = False,
+    group_fn: Optional[Callable[[torch.Tensor, torch.Tensor, torch.Tensor], str]] = None,
+) -> Tuple[float, float] | Tuple[float, float, Dict[str, Iterable[int] | List[str]]]:
     model.eval()
     running_loss = 0.0
     correct = 0
     total = 0
 
+    collect_details = return_details or group_fn is not None
+    all_preds: List[torch.Tensor] = []
+    all_targets: List[torch.Tensor] = []
+    all_groups: List[str] = []
+
     with torch.no_grad():
-        for images, targets in tqdm(loader, desc="eval", leave=False):
+        for batch in tqdm(loader, desc="eval", leave=False):
+            if len(batch) == 3:
+                images, targets, batch_groups = batch
+            else:
+                images, targets = batch
+                batch_groups = None
+
             images = images.to(device)
             targets = targets.to(device)
             outputs = model(images)
+            probs = torch.softmax(outputs, dim=1)
             loss = criterion(outputs, targets)
             preds = outputs.argmax(dim=1)
             running_loss += loss.item() * images.size(0)
             correct += preds.eq(targets).sum().item()
             total += images.size(0)
 
-    return running_loss / total, correct / total
+            if collect_details or batch_groups is not None:
+                all_preds.append(preds.cpu())
+                all_targets.append(targets.cpu())
+
+                if group_fn is not None:
+                    batch_group_labels = [
+                        group_fn(prob_vec, pred_lbl, true_lbl)
+                        for prob_vec, pred_lbl, true_lbl in zip(probs, preds, targets)
+                    ]
+                elif batch_groups is not None:
+                    batch_group_labels = list(batch_groups)
+                else:
+                    batch_group_labels = []
+
+                all_groups.extend(batch_group_labels)
+
+    avg_loss = running_loss / total if total > 0 else 0.0
+    acc = correct / total if total > 0 else 0.0
+
+    if not (collect_details or all_groups):
+        return avg_loss, acc
+
+    details: Dict[str, Iterable[int] | List[str]] = {
+        "y_true": torch.cat(all_targets).tolist() if all_targets else [],
+        "y_pred": torch.cat(all_preds).tolist() if all_preds else [],
+        "groups": all_groups,
+    }
+    return avg_loss, acc, details
 
 
 def train_model(
