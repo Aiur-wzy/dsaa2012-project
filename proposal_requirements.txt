@@ -1,0 +1,9 @@
+Project Proposal Requirements Summary
+- Goal: minimal, real-time facial expression recognition system using a lightweight CNN trained on FER-2013.
+- Pipeline: OpenCV-based face detection and alignment, per-frame emotion inference, and deployable prototype balancing accuracy, latency, and portability.
+- Validation: reproducible training pipeline with live camera evaluation of robustness and fairness in real-world settings.
+- Research questions:
+  RQ1: Can a lightweight CNN achieve robust FER-2013 accuracy without large backbones?
+  RQ2: Which augmentations and loss designs mitigate label noise and class confusion?
+  RQ3: How stable is performance across illumination, pose, and demographic proxies, and what biases emerge?
+- Context: addresses label noise and distribution shift in FER-2013, targeting end-to-end approach with robustness-oriented training and deployment optimization.

@@ -1,0 +1,10 @@
+Alignment with proposal requirements
+- Lightweight FER-2013 model: The repository centers on a compact CNN tailored for 48×48 FER-2013 inputs, meeting the proposal goal of avoiding large backbones while supporting width scaling for capacity studies. 【F:proposal_requirements.txt†L2-L9】【F:fer/models.py†L19-L67】
+- OpenCV detection/alignment and real-time inference: The OpenCV-based face detector, eye-alignment helper, preprocessing, and webcam demo implement the proposed pipeline of detection, alignment, and per-frame emotion inference suitable for deployable real-time use. 【F:proposal_requirements.txt†L2-L4】【F:fer/inference.py†L16-L185】
+- Reproducible training/evaluation: CLI training on FER-2013 with configurable augmentations (including MixUp) and checkpointing, plus standalone evaluation scripts, deliver the reproducible training pipeline requested. 【F:proposal_requirements.txt†L4-L9】【F:README.md†L23-L47】
+- Robustness and fairness probes: Perturbation utilities and group-wise metrics, along with documented robustness/fairness experiments, directly address the robustness and bias research questions. 【F:proposal_requirements.txt†L4-L9】【F:README.md†L110-L159】【F:fer/robustness.py†L7-L84】
+- Deployment and latency targets: ONNX export guidance and reported FPS/latency figures demonstrate attention to the proposal’s portability and real-time constraints. 【F:proposal_requirements.txt†L2-L4】【F:README.md†L138-L165】
+
+Gaps and risks
+- Demographic fairness coverage remains proxy-based; without real demographic labels, RQ3 is only partially validated and may miss group-specific biases. 【F:proposal_requirements.txt†L5-L9】【F:README.md†L154-L159】
+- Live-camera robustness coverage depends on user-run demos; automated tests or scripted evaluation under varying lighting/pose would strengthen evidence for real-world reliability. 【F:proposal_requirements.txt†L4-L9】【F:fer/inference.py†L121-L185】
