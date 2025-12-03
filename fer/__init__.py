@@ -10,6 +10,7 @@ from .augment import get_train_transform, get_eval_transform, mixup_data, mixup_
 from .models import EmotionCNN
 from .train import train_model, evaluate, save_checkpoint, load_checkpoint
 from .inference import FaceDetector, preprocess_face, run_realtime_demo, predict_image
+from .fer2013_io import predict_from_fer2013_csv, image_to_fer2013_row, append_images_to_fer2013_csv
 from .robustness import add_brightness_contrast, add_gaussian_blur, jpeg_compress, random_rotate, topk_accuracy, group_metrics
 
 __all__ = [
@@ -29,6 +30,9 @@ __all__ = [
     "preprocess_face",
     "run_realtime_demo",
     "predict_image",
+    "predict_from_fer2013_csv",
+    "image_to_fer2013_row",
+    "append_images_to_fer2013_csv",
     "add_brightness_contrast",
     "add_gaussian_blur",
     "jpeg_compress",
