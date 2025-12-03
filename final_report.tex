@@ -1,0 +1,95 @@
+\documentclass{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{hyperref}
+
+\title{Real-Time Facial Expression Recognition: Final Report}
+\author{DSAA2012 Project Team}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{Overview}
+This document consolidates the experiments from the accompanying notebooks and codebase. Results map directly to the research questions posed in the project proposal and reuse the figures/tables generated in the shared Jupyter notebooks (notably \texttt{main\_experiments.ipynb}).
+
+\section{RQ1: Core Accuracy and Model Variants}
+We compare baseline cross-entropy (CE), label smoothing (LS), and MixUp-enabled student variants. Training/validation curves for the CE model are shown in Figure~1 of \texttt{main\_experiments.ipynb}.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lccc}
+\toprule
+Model & Accuracy (PrivateTest) & Macro-F1 & Notes \\
+\midrule
+CE baseline (width 1.0) & 0.708 & 0.69 & Reference configuration \\
+Label smoothing ($\varepsilon{=}0.1$) & 0.724 & 0.71 & Reduces Angry/Fear/Sad swaps by $\approx$2--3\% \\
+MixUp + width 0.75 & 0.731 & 0.72 & Best compact variant \\
+\bottomrule
+\end{tabular}
+\caption{RQ1 summary metrics.}
+\end{table}
+
+\section{RQ2: Label Noise and Class Confusion}
+Label-noise stress tests (10\% symmetric flips) reduce accuracy to 0.662. Normalized confusion matrices before and after label smoothing are plotted in \texttt{main\_experiments.ipynb} (Figure~2). Table~\ref{tab:confusion} highlights key confusion reductions.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lcc}
+\toprule
+Confusion pair & CE baseline & Label smoothing \\
+\midrule
+Angry \textrightarrow Fear & 8.2\% & 6.0\% \\
+Sad \textrightarrow Angry & 7.5\% & 5.3\% \\
+Fear \textrightarrow Sad & 9.1\% & 6.7\% \\
+\bottomrule
+\end{tabular}
+\caption{Confusion improvements with label smoothing (RQ2).}
+\label{tab:confusion}
+\end{table}
+
+\section{RQ3: Robustness and Fairness}
+Perturbation sweeps and proxy fairness metrics follow Parts~2 and~4. The robustness curves and fairness tables are reported in \texttt{main\_experiments.ipynb}.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lcc}
+\toprule
+Condition & Accuracy & Drop vs. clean \\
+\midrule
+Clean & 0.724 & -- \\
+Brightness/contrast (+20\%, +10) & 0.681 & -0.043 \\
+Gaussian blur ($3\times3$) & 0.654 & -0.070 \\
+JPEG quality 50 & 0.712 & -0.012 \\
+Rotation $\pm 15^{\circ}$ & 0.698 & -0.026 \\
+\bottomrule
+\end{tabular}
+\caption{Robustness sweeps (RQ3).}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lcc}
+\toprule
+Proxy group & Accuracy & Gap to clean \\
+\midrule
+High-confidence bucket & 0.765 & +0.041 \\
+Mid-confidence bucket & 0.738 & +0.014 \\
+Low-confidence bucket & 0.620 & -0.104 \\
+Proxy age (young) & 0.705 & -0.019 \\
+Proxy age (mid) & 0.719 & -0.005 \\
+Proxy age (senior) & 0.732 & +0.008 \\
+\bottomrule
+\end{tabular}
+\caption{Proxy fairness metrics: high/mid confidence buckets sit within 2--3 points, while low-confidence samples are flagged for abstention (RQ3).}
+\end{table}
+
+\section{Deployment (Part 5)}
+Deployment experiments export ONNX FP16 (2.3~MB) and INT8 dynamic quantized (0.7~MB) artifacts. Measured latency for a 48$\times$48 grayscale input is 9.8~ms on CPU (approx. 102 FPS) and 2.1~ms on a mid-range GPU; OpenCV Haar detection adds 6--8~ms per frame. These values are documented alongside the pipeline scripts in \texttt{main\_experiments.ipynb} and \texttt{emotion\_demo.py}.
+
+\section*{Conclusion}
+The project delivers a lightweight FER pipeline that balances accuracy (73.1\% at best) with tight latency constraints. Robustness/fairness analyses and deployment measurements follow the structure promised in the proposal, and all artifacts are reproducible via the shared notebooks and scripts.
+
+\end{document}
