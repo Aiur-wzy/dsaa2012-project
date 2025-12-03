@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Dict, Tuple
 
+import pandas as pd
 import torch
 from torch import nn, optim
 from torch.utils.data import DataLoader
@@ -81,6 +82,7 @@ def train_model(
     use_mixup: bool = False,
     mixup_alpha: float = 0.2,
     ckpt_dir: str | Path = "runs",
+    history_path: str | Path | None = None,
 ) -> Dict[str, float]:
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
@@ -89,6 +91,7 @@ def train_model(
     history = {"train_loss": [], "train_acc": [], "val_loss": [], "val_acc": []}
     ckpt_dir = Path(ckpt_dir)
     ckpt_dir.mkdir(parents=True, exist_ok=True)
+    history_path = Path(history_path) if history_path is not None else ckpt_dir / "history.csv"
 
     for epoch in range(1, epochs + 1):
         train_loss, train_acc = train_one_epoch(
@@ -112,7 +115,18 @@ def train_model(
             f"val loss {val_loss:.4f} acc {val_acc:.3f}"
         )
 
-    return {"best_val_acc": best_val_acc, **history}
+    history_df = pd.DataFrame(
+        {
+            "epoch": list(range(1, epochs + 1)),
+            "train_loss": history["train_loss"],
+            "train_acc": history["train_acc"],
+            "val_loss": history["val_loss"],
+            "val_acc": history["val_acc"],
+        }
+    )
+    history_df.to_csv(history_path, index=False)
+
+    return {"best_val_acc": best_val_acc, "history_path": str(history_path), **history}
 
 
 def save_checkpoint(model: nn.Module, optimizer: optim.Optimizer, epoch: int, path: str | Path, metric: float) -> None:
@@ -143,16 +157,26 @@ if __name__ == "__main__":
     parser.add_argument("--mixup", action="store_true")
     parser.add_argument("--mixup-alpha", type=float, default=0.2)
     parser.add_argument("--in-chans", type=int, default=1, choices=[1, 3])
+    parser.add_argument("--width-mult", type=float, default=1.0, help="Width multiplier for model capacity ablations")
+    parser.add_argument(
+        "--augmentation",
+        choices=["full", "baseline"],
+        default="full",
+        help="Choose augmentation strength for ablation studies",
+    )
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--ckpt-dir", default="runs/exp1")
     args = parser.parse_args()
 
-    from .augment import get_eval_transform, get_train_transform
+    from .augment import get_baseline_train_transform, get_eval_transform, get_train_transform
     from .data import build_dataloaders
     from .models import EmotionCNN
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    train_tf = get_train_transform(args.in_chans)
+    if args.augmentation == "baseline":
+        train_tf = get_baseline_train_transform(args.in_chans)
+    else:
+        train_tf = get_train_transform(args.in_chans)
     eval_tf = get_eval_transform(args.in_chans)
     train_loader, val_loader, _ = build_dataloaders(
         args.csv,
@@ -163,7 +187,7 @@ if __name__ == "__main__":
         eval_transform=eval_tf,
     )
 
-    model = EmotionCNN(in_chans=args.in_chans).to(device)
+    model = EmotionCNN(in_chans=args.in_chans, width_mult=args.width_mult).to(device)
     stats = train_model(
         model,
         train_loader,
