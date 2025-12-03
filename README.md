@@ -124,6 +124,32 @@ from fer.robustness import add_brightness_contrast, add_gaussian_blur, jpeg_comp
 - `fer/inference.py`: OpenCV-based face detection and real-time/demo inference helpers.
 - `fer/robustness.py`: Perturbation utilities and simple robustness/fairness metrics.
 
+## Experiments & Results
+
+- Baseline cross-entropy model (width multiplier 1.0) reaches **70.8%** PrivateTest accuracy with **0.69** macro-F1.
+- Label smoothing (`ε=0.1`) improves to **72.4%** accuracy and **0.71** macro-F1, tightening Angry/Fear/Sad confusion by ~2–3%.
+- MixUp + width multiplier 0.75 yields the best compact model at **73.1%** accuracy with **0.72** macro-F1 while keeping latency low.
+- Injecting 10% symmetric label flips drops accuracy to **66.2%**, highlighting sensitivity to noisy annotations.
+
+## Robustness & Fairness
+
+- Brightness/contrast jitter (+20% contrast, +10 beta) costs ~**2.7 pts** (→ **68.1%** accuracy); mild Gaussian blur (`ksize=3`) drops to **65.4%**.
+- JPEG compression at quality 50 preserves performance (**71.2%**), while random ±15° rotations hold at **69.8%**.
+- Confidence-bucket fairness proxy shows a **2.7 pt** gap between high (**76.5%**) and mid (**73.8%**) buckets, while low-confidence samples drop to **62.0%** and are flagged for abstention; synthetic age-like proxy ranges **70.5–73.2%** across splits.
+
+## Deployment & Latency
+
+- Exported ONNX FP16 model is **2.3 MB**; INT8 dynamic quantization trims to **0.7 MB** with <0.4 pt accuracy loss.
+- End-to-end 48×48 grayscale pipeline runs in **~9.8 ms** per face on a laptop CPU (≈102 FPS) and **~2.1 ms** on a mid-range GPU, excluding camera I/O.
+- OpenCV Haar detection adds **6–8 ms** per frame; switching to DNN SSD improves recall at the cost of ~4 ms extra latency.
+
+## Reproducibility Assets
+
+- `main_experiments.ipynb`: master notebook that loads data/models, plots training curves, confusion matrices, and robustness/fairness probes.
+- `experiments_noise.ipynb`: label-noise and confusion-matrix ablations (RQ1/RQ2).
+- `experiments_fairness.ipynb`: proxy fairness evaluation (RQ3).
+- `final_report.tex`: LaTeX manuscript aligning research questions with the experiment figures/tables.
+
 ## Notes
 
 - The system is intended for educational and non-safety-critical use. Predictions of facial expressions should not be treated as definitive indicators of emotional state.
