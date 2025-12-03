@@ -25,6 +25,44 @@ def random_rotate(img: np.ndarray, max_angle: float = 30) -> np.ndarray:
     return cv2.warpAffine(img, mat, (w, h))
 
 
+def eval_under_corruption(model, loader, device: torch.device, corruption_fn) -> float:
+    """Compute accuracy when every image in ``loader`` is corrupted on the fly."""
+
+    def _to_uint8(batch: np.ndarray) -> np.ndarray:
+        # Invert standardization (mean=0.5, std=0.5) if inputs are in [-1, 1]
+        if batch.min() < 0.0 or batch.max() > 1.0:
+            batch = 0.5 * batch + 0.5
+        batch = np.clip(batch, 0.0, 1.0)
+        return (batch * 255.0).astype("uint8")
+
+    model.eval()
+    correct, total = 0, 0
+
+    with torch.no_grad():
+        for x, y in loader:
+            # B, C, H, W -> B, H, W, C for OpenCV utilities
+            x_np = x.permute(0, 2, 3, 1).cpu().numpy()
+            x_uint8 = _to_uint8(x_np)
+
+            corrupted = []
+            for img in x_uint8:
+                img_corr = corruption_fn(img)
+                if img_corr.ndim == 2:  # Ensure channel dimension is preserved
+                    img_corr = np.expand_dims(img_corr, axis=-1)
+                img_corr = img_corr.astype("float32") / 255.0
+                corrupted.append(img_corr)
+
+            x_corr = torch.from_numpy(np.stack(corrupted, axis=0).transpose(0, 3, 1, 2)).to(device)
+            y = y.to(device)
+
+            logits = model(x_corr)
+            preds = logits.argmax(dim=1)
+            correct += (preds == y).sum().item()
+            total += y.size(0)
+
+    return correct / total if total > 0 else 0.0
+
+
 def topk_accuracy(logits: torch.Tensor, labels: torch.Tensor, k: int = 2) -> float:
     topk = torch.topk(logits, k, dim=1).indices.cpu().numpy()
     labels_np = labels.cpu().numpy()

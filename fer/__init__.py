@@ -12,7 +12,15 @@ from .models import EmotionCNN, count_parameters
 from .train import train_model, evaluate, save_checkpoint, load_checkpoint
 from .inference import FaceDetector, preprocess_face, run_realtime_demo, predict_image
 from .fer2013_io import predict_from_fer2013_csv, image_to_fer2013_row, append_images_to_fer2013_csv
-from .robustness import add_brightness_contrast, add_gaussian_blur, jpeg_compress, random_rotate, topk_accuracy, group_metrics
+from .robustness import (
+    add_brightness_contrast,
+    add_gaussian_blur,
+    eval_under_corruption,
+    jpeg_compress,
+    random_rotate,
+    topk_accuracy,
+    group_metrics,
+)
 
 __all__ = [
     "FER2013Dataset",
@@ -40,6 +48,7 @@ __all__ = [
     "append_images_to_fer2013_csv",
     "add_brightness_contrast",
     "add_gaussian_blur",
+    "eval_under_corruption",
     "jpeg_compress",
     "random_rotate",
     "topk_accuracy",
