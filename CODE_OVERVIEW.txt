@@ -1,0 +1,46 @@
+DSAA2012 Facial Expression Recognition Repository Overview
+========================================================
+
+Purpose and datasets
+--------------------
+- Implements a compact, real-time facial expression recognition pipeline for the FER-2013 dataset.
+- Core artifacts: training/evaluation scripts, robustness probes, and deployment helpers for webcam demos or ONNX export.
+
+Python package (`fer/`)
+-----------------------
+- __init__.py: Collects public APIs (datasets, augmentation, model, training/evaluation helpers, inference utilities, CSV I/O, and robustness metrics).
+- data.py: `FER2013Dataset` wrapper that converts CSV rows into normalized tensors and optionally returns synthetic group labels; `build_dataloaders` prepares train/val/test loaders with standard splits.
+- augment.py: Albumentations pipelines for heavy training augmentation (`get_train_transform`), baseline/no-augmentation runs (`get_baseline_train_transform`), and evaluation preprocessing (`get_eval_transform`); MixUp helpers (`mixup_data`, `mixup_criterion`).
+- models.py: Lightweight `EmotionCNN` with width multiplier plus `count_parameters` helper; uses stacked ConvBlocks, pooling, and a two-layer classifier.
+- train.py: Training/evaluation loops (cross-entropy or label smoothing), checkpoint saving/loading, and a CLI for end-to-end training with MixUp and augmentation toggles.
+- losses.py: Label smoothing cross-entropy implementation compatible with MixUp.
+- analysis.py: Evaluation helpers to compute and save confusion matrices/reports for loaders or CSV outputs.
+- inference.py: OpenCV-based face detection (`FaceDetector` with Haar or DNN), face alignment/preprocessing, single-image prediction, and a real-time webcam demo loop with FPS diagnostics.
+- fer2013_io.py: Utilities to predict labels directly from FER-2013 CSV files, convert images to FER-formatted rows, and append synthetic samples to CSVs.
+- robustness.py: Corruption/perturbation functions (e.g., brightness/contrast, blur, JPEG compression, rotations), top-k accuracy helper, and group-wise metrics for fairness-style analysis.
+
+Top-level scripts
+-----------------
+- evaluation.py: Loads a checkpoint and FER-2013 CSV to compute metrics, confusion matrices, and reports for validation/test splits.
+- robust_eval.py: Applies perturbations to a set of images and summarizes robustness metrics using `fer.robustness` utilities.
+- export_model.py: Converts a trained checkpoint to ONNX (with optional quantization hints) for deployment.
+- emotion_demo.py: Minimal wiring between a trained `EmotionCNN`, OpenCV detectors, and webcam feed for manual testing.
+
+Notebooks and reports
+---------------------
+- main_experiments.ipynb: Master notebook to run training/validation, visualize curves, and aggregate robustness/fairness results.
+- experiments_noise.ipynb: Ablations on label noise sensitivity and confusion patterns.
+- experiments_fairness.ipynb: Proxy fairness evaluation using synthetic groups.
+- final_report.tex / Project Proposal.pdf: Written documentation of research questions, experiment design, and results.
+
+Data artifacts
+--------------
+- data_example.txt: Minimal FER-2013-style CSV snippet for quick prediction/testing flows.
+
+How to navigate or extend
+-------------------------
+- Start from `fer/train.py` for end-to-end training CLI usage; adjust augmentations or MixUp settings in `fer/augment.py`.
+- Modify architecture in `fer/models.py` (width multiplier or block configuration) and reuse `count_parameters` during model size sweeps.
+- Use `evaluation.py` for reproducible metrics and confusion matrices; pair with `analysis.py` utilities when integrating into new notebooks.
+- Explore robustness via `robust_eval.py` or directly call functions in `fer/robustness.py` to craft new corruption sweeps.
+- For deployment, export ONNX with `export_model.py` and test live predictions with `emotion_demo.py` and `fer.inference` utilities.

@@ -124,6 +124,26 @@ from fer.robustness import add_brightness_contrast, add_gaussian_blur, jpeg_comp
 - `fer/inference.py`: OpenCV-based face detection and real-time/demo inference helpers.
 - `fer/robustness.py`: Perturbation utilities and simple robustness/fairness metrics.
 
+## Repository Tour
+
+- **Training & evaluation scripts**
+  - `fer/train.py`: CLI entry point for full training, validation, and checkpointing.
+  - `evaluation.py`: Standalone evaluator that loads a checkpoint, computes metrics, and exports confusion matrices/reports.
+  - `robust_eval.py`: Convenience script for running perturbation sweeps via `fer.robustness` helpers.
+
+- **Data utilities**
+  - `fer/fer2013_io.py`: Helper functions to ingest/export FER-2013 formatted rows and batch-predict CSVs.
+  - `data_example.txt`: Small FER-2013 style sample for quick predictions.
+
+- **Deployment**
+  - `export_model.py`: Exports trained checkpoints to ONNX for lightweight deployment/quantization pipelines.
+  - `emotion_demo.py`: Minimal script that wires a checkpoint with the webcam demo utilities in `fer.inference`.
+
+- **Analysis assets**
+  - `main_experiments.ipynb`: End-to-end notebook that reproduces the primary training curves and robustness studies.
+  - `experiments_noise.ipynb` / `experiments_fairness.ipynb`: Focused notebooks on label noise and fairness probes.
+  - `final_report.tex` and `Project Proposal.pdf`: Written artifacts summarizing the project motivation and findings.
+
 ## Experiments & Results
 
 - Baseline cross-entropy model (width multiplier 1.0) reaches **70.8%** PrivateTest accuracy with **0.69** macro-F1.
