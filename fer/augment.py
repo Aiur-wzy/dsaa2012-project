@@ -33,6 +33,18 @@ def get_train_transform(in_chans: int = 1) -> A.Compose:
     )
 
 
+def get_baseline_train_transform(in_chans: int = 1) -> A.Compose:
+    """Minimal augmentation for baseline ablations (normalize + tensor)."""
+    if in_chans == 1:
+        mean = (0.5,)
+        std = (0.5,)
+    else:
+        mean = (0.5, 0.5, 0.5)
+        std = (0.5, 0.5, 0.5)
+
+    return A.Compose([A.Normalize(mean=mean, std=std), ToTensorV2()])
+
+
 def get_eval_transform(in_chans: int = 1) -> A.Compose:
     if in_chans == 1:
         mean = (0.5,)

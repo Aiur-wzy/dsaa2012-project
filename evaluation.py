@@ -1,38 +1,84 @@
+import argparse
+import json
+from pathlib import Path
+
 import torch
-from fer import EmotionCNN, evaluate, build_dataloaders, get_eval_transform
+
+from fer import (
+    EMOTION_LABELS,
+    EmotionCNN,
+    build_dataloaders,
+    evaluate,
+    evaluate_with_confusion,
+    get_eval_transform,
+    save_confusion_outputs,
+)
 
 
-def main():
-    # 如果 fer2013.csv 就在 dsaa2012-project-main 目录下，这样写就可以
-    # 否则改成绝对/相对正确路径，例如: csv_path = "fer/fer2013.csv"
-    csv_path = "fer2013.csv"
-    ckpt_path = "runs/exp1/best.pt"
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Evaluate a trained EmotionCNN checkpoint")
+    parser.add_argument("--csv", default="fer2013.csv", help="Path to fer2013.csv")
+    parser.add_argument("--ckpt", default="runs/exp1/best.pt", help="Checkpoint path")
+    parser.add_argument("--batch-size", type=int, default=256)
+    parser.add_argument("--workers", type=int, default=0)
+    parser.add_argument("--in-chans", type=int, default=1, choices=[1, 3])
+    parser.add_argument("--width-mult", type=float, default=1.0, help="Width multiplier for model ablations")
+    parser.add_argument(
+        "--split",
+        choices=["val", "test"],
+        default="test",
+        help="Which split to evaluate (val=PublicTest, test=PrivateTest)",
+    )
+    parser.add_argument("--compute-confusion", action="store_true", help="Compute confusion matrix and per-class metrics")
+    parser.add_argument(
+        "--save-dir",
+        default="runs/analysis",
+        help="Directory to write confusion matrices, reports, and metric JSON",
+    )
+    return parser.parse_args()
 
+
+def main() -> None:
+    args = parse_args()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("Using device:", device)
 
-    # 构建模型并加载权重
-    model = EmotionCNN(in_chans=1).to(device)
-
-    # 如果你想去掉 FutureWarning，可以加 weights_only=True（前提是 ckpt 里只保存了 state_dict）
-    state = torch.load(ckpt_path, map_location=device)
-    # 有的 checkpoint 是 {"state_dict": xxx}，有的是直接保存 state_dict，这里都兼容一下
+    model = EmotionCNN(in_chans=args.in_chans, width_mult=args.width_mult).to(device)
+    state = torch.load(args.ckpt, map_location=device)
     state_dict = state["state_dict"] if "state_dict" in state else state
     model.load_state_dict(state_dict)
 
-    # Windows 上为了避免多进程问题，最稳的是先用 num_workers=0
-    # 如果后面加速想开多进程，可以把 0 改回 4，前提是 main() 结构保留
-    _, _, test_loader = build_dataloaders(
-        csv_path,
-        batch_size=256,
-        num_workers=0,
-        in_chans=1,
-        eval_transform=get_eval_transform(1),
+    eval_tf = get_eval_transform(args.in_chans)
+    _train_loader, val_loader, test_loader = build_dataloaders(
+        args.csv,
+        batch_size=args.batch_size,
+        num_workers=args.workers,
+        in_chans=args.in_chans,
+        train_transform=eval_tf,
+        eval_transform=eval_tf,
     )
 
+    loader = val_loader if args.split == "val" else test_loader
     criterion = torch.nn.CrossEntropyLoss()
-    test_loss, test_acc = evaluate(model, test_loader, criterion, device)
-    print({"test_loss": test_loss, "test_acc": test_acc})
+    loss, acc = evaluate(model, loader, criterion, device)
+    metrics = {"loss": loss, "accuracy": acc, "split": args.split}
+    print("Evaluation:", metrics)
+
+    save_dir = Path(args.save_dir)
+    save_dir.mkdir(parents=True, exist_ok=True)
+    metrics_path = save_dir / f"{args.split}_metrics.json"
+    with open(metrics_path, "w", encoding="utf-8") as f:
+        json.dump(metrics, f, indent=2)
+
+    if args.compute_confusion:
+        cm, report = evaluate_with_confusion(model, loader, device)
+        label_names = [EMOTION_LABELS[idx] for idx in sorted(EMOTION_LABELS.keys())]
+        outputs = save_confusion_outputs(cm, report, save_dir / f"{args.split}_confusion", labels=label_names)
+        report_path = save_dir / f"{args.split}_classification_report.json"
+        with open(report_path, "w", encoding="utf-8") as f:
+            json.dump(report, f, indent=2)
+        print("Confusion matrix saved to", outputs)
+        print("Classification report saved to", report_path)
 
 
 if __name__ == "__main__":

@@ -28,32 +28,22 @@ python -m fer.train --csv path/to/fer2013.csv --epochs 30 --batch-size 128 --in-
 
 Key flags:
 - `--mixup`: enable MixUp during training to combat label noise.
+- `--augmentation`: choose `baseline` to disable heavy augmentations for ablation runs.
+- `--width-mult`: scale the network width (e.g., `0.75` for a smaller model or `1.25` for a larger one).
 - `--in-chans`: set to `3` if you prefer duplicating grayscale channels for pre-trained backbones.
 - `--workers`: adjust data-loading workers for your CPU.
 
-Checkpoints `latest.pt` and `best.pt` are stored under the chosen `--ckpt-dir`.
+Checkpoints `latest.pt` and `best.pt` are stored under the chosen `--ckpt-dir`. Per-epoch
+train/validation curves are exported as `history.csv` alongside the checkpoints.
 
 ### Evaluate a checkpoint
 
 ```bash
-python - <<'PY'
-import torch
-from fer import EmotionCNN, evaluate, build_dataloaders, get_eval_transform
-
-csv_path = "path/to/fer2013.csv"
-ckpt_path = "runs/exp1/best.pt"
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-model = EmotionCNN(in_chans=1).to(device)
-state = torch.load(ckpt_path, map_location=device)
-model.load_state_dict(state["state_dict"])
-
-_, _, test_loader = build_dataloaders(csv_path, batch_size=256, num_workers=4, in_chans=1, eval_transform=get_eval_transform(1))
-criterion = torch.nn.CrossEntropyLoss()
-test_loss, test_acc = evaluate(model, test_loader, criterion, device)
-print({"test_loss": test_loss, "test_acc": test_acc})
-PY
+python evaluation.py --csv path/to/fer2013.csv --ckpt runs/exp1/best.pt --compute-confusion --save-dir runs/analysis
 ```
+
+The evaluation script saves JSON metrics, a confusion matrix (`.npy` and `.csv`), and a full
+classification report for the requested split (validation or test).
 
 ### Run the webcam demo
 
