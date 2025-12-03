@@ -8,6 +8,7 @@ from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
 
 from .augment import mixup_criterion, mixup_data
+from .losses import LabelSmoothingCE
 
 
 def train_one_epoch(
@@ -83,8 +84,16 @@ def train_model(
     mixup_alpha: float = 0.2,
     ckpt_dir: str | Path = "runs",
     history_path: str | Path | None = None,
+    loss: str = "ce",
+    label_smoothing_eps: float = 0.1,
+    num_classes: int = 7,
 ) -> Dict[str, float]:
-    criterion = nn.CrossEntropyLoss()
+    if loss == "ce":
+        criterion: nn.Module = nn.CrossEntropyLoss()
+    elif loss == "label_smoothing":
+        criterion = LabelSmoothingCE(num_classes=num_classes, eps=label_smoothing_eps)
+    else:
+        raise ValueError(f"Unsupported loss type: {loss}")
     optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
 
     best_val_acc = 0.0
@@ -164,6 +173,9 @@ if __name__ == "__main__":
         default="full",
         help="Choose augmentation strength for ablation studies",
     )
+    parser.add_argument("--loss", choices=["ce", "label_smoothing"], default="ce", help="Training loss")
+    parser.add_argument("--label-smoothing-eps", type=float, default=0.1, help="Smoothing factor for label smoothing")
+    parser.add_argument("--num-classes", type=int, default=7, help="Number of target classes")
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--ckpt-dir", default="runs/exp1")
     args = parser.parse_args()
@@ -199,5 +211,8 @@ if __name__ == "__main__":
         use_mixup=args.mixup,
         mixup_alpha=args.mixup_alpha,
         ckpt_dir=args.ckpt_dir,
+        loss=args.loss,
+        label_smoothing_eps=args.label_smoothing_eps,
+        num_classes=args.num_classes,
     )
     print("Training finished. Best val acc:", stats["best_val_acc"])
