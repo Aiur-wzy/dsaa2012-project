@@ -34,7 +34,9 @@ Key flags:
 - `--workers`: adjust data-loading workers for your CPU.
 
 Checkpoints `latest.pt` and `best.pt` are stored under the chosen `--ckpt-dir`. Per-epoch
-train/validation curves are exported as `history.csv` alongside the checkpoints.
+train/validation curves are exported as `history.csv` alongside the checkpoints. A structured
+`process.json` file is also written to the checkpoint directory so that `main_experiments.py`
+can automatically load the most recent run for visualization.
 
 ### Evaluate a checkpoint
 

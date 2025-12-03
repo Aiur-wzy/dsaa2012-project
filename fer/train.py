@@ -1,3 +1,5 @@
+import json
+from argparse import Namespace
 from pathlib import Path
 from typing import Callable, Dict, Iterable, List, Optional, Tuple
 
@@ -184,6 +186,31 @@ def train_model(
     return {"best_val_acc": best_val_acc, "history_path": str(history_path), **history}
 
 
+def save_process_file(
+    ckpt_dir: Path, args: Dict | Namespace, stats: Dict[str, float], process_path: Path | None = None
+) -> Path:
+    """Persist a JSON summary of the training run for downstream analysis."""
+
+    process_path = process_path or ckpt_dir / "process.json"
+    if hasattr(args, "__dict__"):
+        config = vars(args)
+    else:
+        config = dict(args)
+
+    payload = {
+        "config": config,
+        "history_path": stats.get("history_path", str(ckpt_dir / "history.csv")),
+        "best_checkpoint": str(ckpt_dir / "best.pt"),
+        "latest_checkpoint": str(ckpt_dir / "latest.pt"),
+        "metrics": {"best_val_acc": stats.get("best_val_acc", 0.0)},
+    }
+
+    process_path = Path(process_path)
+    process_path.parent.mkdir(parents=True, exist_ok=True)
+    process_path.write_text(json.dumps(payload, indent=2))
+    return process_path
+
+
 def save_checkpoint(model: nn.Module, optimizer: optim.Optimizer, epoch: int, path: str | Path, metric: float) -> None:
     payload = {
         "epoch": epoch,
@@ -224,6 +251,10 @@ if __name__ == "__main__":
     parser.add_argument("--num-classes", type=int, default=7, help="Number of target classes")
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--ckpt-dir", default="runs/exp1")
+    parser.add_argument("--history-path", default=None, help="Optional path for the per-epoch history CSV")
+    parser.add_argument(
+        "--process-path", default=None, help="Where to write the process summary JSON for downstream analysis"
+    )
     args = parser.parse_args()
 
     from .augment import get_baseline_train_transform, get_eval_transform, get_train_transform
@@ -260,5 +291,8 @@ if __name__ == "__main__":
         loss=args.loss,
         label_smoothing_eps=args.label_smoothing_eps,
         num_classes=args.num_classes,
+        history_path=args.history_path,
     )
+    process_file = save_process_file(Path(args.ckpt_dir), args, stats, args.process_path)
     print("Training finished. Best val acc:", stats["best_val_acc"])
+    print("Process summary written to:", process_file)
