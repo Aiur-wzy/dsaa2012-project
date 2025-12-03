@@ -72,6 +72,51 @@ run_realtime_demo(model, detector, device=device, in_chans=1)
 PY
 ```
 
+### Predict labels from a FER-2013 CSV
+
+Given a sample CSV in the FER-2013 format, you can run batched predictions:
+
+```bash
+python - <<'PY'
+import torch
+from fer import EmotionCNN, predict_from_fer2013_csv
+
+csv_path = "data_example.txt"  # any FER-2013 style CSV
+ckpt_path = "runs/exp1/best.pt"  # path to your trained checkpoint
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model = EmotionCNN(in_chans=1)
+state = torch.load(ckpt_path, map_location=device)
+model.load_state_dict(state["state_dict"])
+
+preds = predict_from_fer2013_csv(model, csv_path, device=device, in_chans=1)
+for i, pred in enumerate(preds):
+    print(f"Row {i}: {pred['label_name']} (p={pred['confidence']:.3f})")
+PY
+```
+
+### Convert images into FER-2013 rows
+
+You can also convert PNG/JPG files into FER-2013-compatible rows that can be
+appended to a CSV for quick experiments:
+
+```bash
+python - <<'PY'
+from fer import image_to_fer2013_row, append_images_to_fer2013_csv
+
+# Single image to a Python dictionary
+row = image_to_fer2013_row("face.png", emotion=0, usage="PrivateTest")
+print(row)
+
+# Append multiple images into a CSV (creates the file if it does not exist)
+updated_df = append_images_to_fer2013_csv([
+    "face.png",
+    "another_face.png",
+], "synthetic_fer.csv", emotion=0, usage="PrivateTest")
+print(updated_df.head())
+PY
+```
+
 ### Robustness and fairness probes
 
 Use helpers in `fer.robustness` to perturb images or compute group-wise metrics:
