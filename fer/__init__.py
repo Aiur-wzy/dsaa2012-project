@@ -8,6 +8,7 @@ inference pipeline for the FER-2013 dataset.
 from .data import FER2013Dataset, EMOTION_LABELS, build_dataloaders
 from .analysis import evaluate_with_confusion, save_confusion_outputs
 from .augment import get_train_transform, get_eval_transform, get_baseline_train_transform, mixup_data, mixup_criterion
+from .losses import LabelSmoothingCE
 from .models import EmotionCNN, count_parameters
 from .train import train_model, evaluate, save_checkpoint, load_checkpoint
 from .inference import FaceDetector, preprocess_face, run_realtime_demo, predict_image
@@ -31,6 +32,7 @@ __all__ = [
     "get_baseline_train_transform",
     "mixup_data",
     "mixup_criterion",
+    "LabelSmoothingCE",
     "EmotionCNN",
     "count_parameters",
     "train_model",
