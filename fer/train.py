@@ -222,8 +222,29 @@ def save_checkpoint(model: nn.Module, optimizer: optim.Optimizer, epoch: int, pa
 
 
 def load_checkpoint(model: nn.Module, path: str | Path, device: torch.device) -> Dict:
-    checkpoint = torch.load(path, map_location=device)
-    model.load_state_dict(checkpoint["state_dict"])
+    checkpoint_path = Path(path)
+    if not checkpoint_path.is_file():
+        raise SystemExit(f"Checkpoint not found: {checkpoint_path}")
+
+    try:
+        checkpoint = torch.load(checkpoint_path, map_location=device)
+    except Exception as exc:  # pylint: disable=broad-except
+        raise SystemExit(f"Failed to load checkpoint {checkpoint_path}: {exc}") from exc
+
+    if "state_dict" in checkpoint:
+        state_dict = checkpoint["state_dict"]
+    elif isinstance(checkpoint, dict):
+        state_dict = checkpoint
+    else:
+        raise SystemExit(
+            f"Checkpoint {checkpoint_path} did not contain a state_dict."
+            " Provide a file saved with torch.save(model.state_dict())."
+        )
+
+    try:
+        model.load_state_dict(state_dict)
+    except RuntimeError as exc:
+        raise SystemExit(f"Checkpoint format is invalid: {exc}") from exc
     return checkpoint
 
 

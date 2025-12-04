@@ -35,6 +35,7 @@ def parse_args() -> argparse.Namespace:
         default="runs/analysis",
         help="Directory to write confusion matrices, reports, and metric JSON",
     )
+    parser.add_argument("--dry-run", action="store_true", help="Validate inputs without running evaluation")
     return parser.parse_args()
 
 
@@ -42,7 +43,7 @@ def main() -> None:
     args = parse_args()
     csv_path = Path(args.csv)
     if not csv_path.is_file():
-        raise SystemExit(f"FER-2013 CSV not found: {csv_path}")
+        raise SystemExit(f"FER-2013 CSV not found: {csv_path}; expected columns: emotion, pixels, Usage")
 
     ckpt_path = Path(args.ckpt)
     if not ckpt_path.is_file():
@@ -52,9 +53,29 @@ def main() -> None:
     print("Using device:", device)
 
     model = EmotionCNN(in_chans=args.in_chans, width_mult=args.width_mult).to(device)
-    state = torch.load(ckpt_path, map_location=device)
-    state_dict = state["state_dict"] if "state_dict" in state else state
-    model.load_state_dict(state_dict)
+    try:
+        state = torch.load(ckpt_path, map_location=device)
+    except Exception as exc:  # pylint: disable=broad-except
+        raise SystemExit(f"Failed to load checkpoint {ckpt_path}: {exc}") from exc
+
+    if "state_dict" in state:
+        state_dict = state["state_dict"]
+    elif isinstance(state, dict):
+        state_dict = state
+    else:
+        raise SystemExit(
+            f"Checkpoint {ckpt_path} did not contain a state_dict."
+            " Provide a file saved with torch.save(model.state_dict())."
+        )
+
+    try:
+        model.load_state_dict(state_dict)
+    except RuntimeError as exc:
+        raise SystemExit(f"Checkpoint format is invalid: {exc}") from exc
+
+    if args.dry_run:
+        print("Dry run successful: inputs and checkpoint format look valid.")
+        return
 
     eval_tf = get_eval_transform(args.in_chans)
     _train_loader, val_loader, test_loader = build_dataloaders(
