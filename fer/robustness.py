@@ -13,9 +13,26 @@ def add_gaussian_blur(img: np.ndarray, ksize: int = 3, sigma: float = 1.0) -> np
 
 
 def jpeg_compress(img: np.ndarray, quality: int = 50) -> np.ndarray:
+    """Apply JPEG compression while preserving the original channel count."""
+
     encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), quality]
-    _, enc = cv2.imencode(".jpg", img, encode_param)
-    return cv2.imdecode(enc, 1)
+
+    # ``imencode`` returns a 3-channel image by default even for grayscale inputs.
+    # Track the intended channel layout and decode accordingly to avoid silently
+    # changing 1-channel batches into 3-channel images, which caused the model to
+    # receive unexpected inputs during robustness evaluation.
+    is_gray = img.ndim == 2 or (img.ndim == 3 and img.shape[2] == 1)
+    encode_img = img[..., 0] if img.ndim == 3 and img.shape[2] == 1 else img
+
+    success, enc = cv2.imencode(".jpg", encode_img, encode_param)
+    if not success:
+        return img
+
+    decoded = cv2.imdecode(enc, cv2.IMREAD_GRAYSCALE if is_gray else cv2.IMREAD_COLOR)
+    if decoded is None:
+        return img
+
+    return decoded[..., None] if is_gray else decoded
 
 
 def random_rotate(img: np.ndarray, max_angle: float = 30) -> np.ndarray:
@@ -40,6 +57,7 @@ def eval_under_corruption(model, loader, device: torch.device, corruption_fn) ->
 
     with torch.no_grad():
         for x, y in loader:
+            expected_c = x.shape[1]
             # B, C, H, W -> B, H, W, C for OpenCV utilities
             x_np = x.permute(0, 2, 3, 1).cpu().numpy()
             x_uint8 = _to_uint8(x_np)
@@ -49,6 +67,19 @@ def eval_under_corruption(model, loader, device: torch.device, corruption_fn) ->
                 img_corr = corruption_fn(img)
                 if img_corr.ndim == 2:  # Ensure channel dimension is preserved
                     img_corr = np.expand_dims(img_corr, axis=-1)
+
+                # Align channel count with the original input (1-channel vs. 3-channel)
+                if img_corr.shape[-1] != expected_c:
+                    if expected_c == 1:
+                        if img_corr.shape[-1] == 3:
+                            img_corr = cv2.cvtColor(img_corr, cv2.COLOR_BGR2GRAY)[..., None]
+                        else:
+                            img_corr = img_corr[..., :1]
+                    elif expected_c == 3:
+                        if img_corr.shape[-1] == 1:
+                            img_corr = cv2.cvtColor(img_corr, cv2.COLOR_GRAY2BGR)
+                        else:
+                            img_corr = img_corr[..., :3]
                 img_corr = img_corr.astype("float32") / 255.0
                 corrupted.append(img_corr)
 
