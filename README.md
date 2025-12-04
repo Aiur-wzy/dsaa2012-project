@@ -58,64 +58,33 @@ The script computes clean accuracy, evaluates each corruption/severity, saves a 
 
 ## 6) Run the Webcam Demo
 
-Use OpenCV to detect faces and stream predictions in real time:
+Start the process by running a Python script (`.py` file) with a simple command line:
 
 ```bash
-python - <<'PY'
-import torch
-from fer import EmotionCNN, FaceDetector, run_realtime_demo
-
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-model = EmotionCNN(in_chans=1)
-state = torch.load('runs/exp1/best.pt', map_location=device)
-model.load_state_dict(state['state_dict'])
-
-detector = FaceDetector(detector_type='haar')  # or 'dnn' if Caffe weights are available
-run_realtime_demo(model, detector, device=device, in_chans=1)
-PY
+python webcam_demo_cli.py   --ckpt runs/exp1/best.pt   --in-chans 1   --detector haar
 ```
 
-`run_realtime_demo` handles face detection (Haar/DNN), optional eye-alignment, preprocessing to 48×48, and overlays labels/scores on the video stream. It also prints average FPS plus per-stage timings on exit.【F:fer/inference.py†L1-L124】【F:fer/inference.py†L126-L206】
+This wraps `run_realtime_demo` to handle face detection (Haar/DNN), optional eye-alignment, preprocessing to 48×48, and on-screen labels/scores. It also prints average FPS plus per-stage timings on exit.【F:webcam_demo_cli.py†L1-L35】【F:fer/inference.py†L1-L124】【F:fer/inference.py†L126-L206】
 
 ## 7) Batch Predictions from a FER-2013 CSV
 
-If you have a CSV in FER-2013 format (e.g., `data_example.txt`), generate predictions in bulk:
+Start the process by running a Python script (`.py` file) with a command line like:
 
 ```bash
-python - <<'PY'
-import torch
-from fer import EmotionCNN, predict_from_fer2013_csv
-
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-model = EmotionCNN(in_chans=1)
-state = torch.load('runs/exp1/best.pt', map_location=device)
-model.load_state_dict(state['state_dict'])
-
-preds = predict_from_fer2013_csv(model, 'data_example.txt', device=device, in_chans=1)
-for i, pred in enumerate(preds):
-    print(f"Row {i}: {pred['label_name']} (p={pred['confidence']:.3f})")
-PY
+python predict_from_csv_cli.py   --ckpt runs/exp1/best.pt   --csv data_example.txt   --usage all   --in-chans 1
 ```
 
-`predict_from_fer2013_csv` builds a dataloader, runs softmax to obtain confidences, and returns label indices/names for each row (optionally filtered by `Usage`).【F:fer/fer2013_io.py†L23-L74】
+The script builds a dataloader, runs softmax to obtain confidences, and prints label indices/names for each row (optionally filtered by `Usage`).【F:predict_from_csv_cli.py†L1-L35】【F:fer/fer2013_io.py†L23-L74】
 
 ## 8) Convert Images into FER-2013 Rows
 
-To add your own images to a FER-2013-style CSV (for quick tests or synthetic data generation):
+Start the process by running a Python script (`.py` file) with a command line like:
 
 ```bash
-python - <<'PY'
-from fer import image_to_fer2013_row, append_images_to_fer2013_csv
-
-row = image_to_fer2013_row('face.png', emotion=0, usage='PrivateTest')
-print(row)
-
-updated = append_images_to_fer2013_csv(['face.png', 'another_face.png'], 'synthetic_fer.csv', emotion=0, usage='PrivateTest')
-print(updated.head())
-PY
+python images_to_fer_cli.py   --image face.png   --images face.png another_face.png   --output synthetic_fer.csv   --emotion 0   --usage PrivateTest
 ```
 
-The helper loads grayscale images, resizes to 48×48, flattens to a space-delimited pixel string, and either returns a dict or appends rows to a CSV (creating it if missing).【F:fer/fer2013_io.py†L76-L148】
+The helper loads grayscale images, resizes to 48×48, flattens to a space-delimited pixel string, previews a single row, and optionally appends rows to a CSV (creating it if missing).【F:images_to_fer_cli.py†L1-L25】【F:fer/fer2013_io.py†L76-L148】
 
 ## 9) Export for Deployment
 
