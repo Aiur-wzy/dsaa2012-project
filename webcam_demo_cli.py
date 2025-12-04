@@ -1,5 +1,7 @@
 """Command-line entry point for the real-time webcam demo."""
 import argparse
+from pathlib import Path
+
 import torch
 
 from fer import EmotionCNN, FaceDetector
@@ -26,8 +28,11 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
+    ckpt_path = Path(args.ckpt)
+    if not ckpt_path.is_file():
+        raise SystemExit(f"Checkpoint not found: {ckpt_path}")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = build_model(args.ckpt, args.in_chans)
+    model = build_model(str(ckpt_path), args.in_chans)
     detector = FaceDetector(detector_type=args.detector)
     run_realtime_demo(model, detector, device=device, in_chans=args.in_chans)
 
