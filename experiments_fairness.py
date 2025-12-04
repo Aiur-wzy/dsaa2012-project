@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+"""Notebook-export script for fairness and group-wise metrics experiments.
+
+This file mirrors `experiments_fairness.ipynb`, exploring proxy demographic
+groupings, confidence buckets, and related evaluation utilities.
+"""
 # coding: utf-8
 # Auto-generated from notebook: experiments_fairness.ipynb
 

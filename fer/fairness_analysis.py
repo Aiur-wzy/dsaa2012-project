@@ -1,4 +1,10 @@
-"""Utilities for fairness-oriented evaluation and visualization."""
+"""Utilities for fairness-oriented evaluation and visualization.
+
+The module defines helpers such as :func:`compute_age_groups`,
+:func:`compute_confidence_groups`, and :func:`plot_group_metrics` to slice model
+performance by demographic proxies or confidence bins and render summary
+figures.
+"""
 
 from pathlib import Path
 from typing import Dict, Iterable, List

@@ -1,3 +1,10 @@
+"""Command-line utility for training knowledge-distilled student models.
+
+This script configures teacher/student architectures with :func:`load_model`,
+builds FER dataloaders, and launches :func:`train_kd_model` using user-specified
+hyperparameters parsed by :func:`parse_args`.
+"""
+
 import argparse
 import torch
 import torchvision.models as tv_models

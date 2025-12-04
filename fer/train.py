@@ -1,3 +1,10 @@
+"""Training and evaluation loops for the FER models.
+
+Key entry points include :func:`train_one_epoch`, :func:`evaluate`, and
+:func:`train_model`, along with checkpoint utilities (:func:`save_checkpoint`,
+:func:`load_checkpoint`) used by CLI scripts and notebooks.
+"""
+
 import json
 from argparse import Namespace
 from pathlib import Path

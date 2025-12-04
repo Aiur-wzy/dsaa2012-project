@@ -1,4 +1,9 @@
-"""Benchmark detector variants in a headless loop and summarize timings."""
+"""Benchmark detector variants in a headless loop and summarize timings.
+
+Argument parsing is handled by :func:`parse_args`, while :func:`main` loads the
+EmotionCNN checkpoint, iterates through frames using :class:`FaceDetector`, and
+records inference throughput statistics for comparison.
+"""
 import argparse
 import json
 import time

@@ -1,3 +1,10 @@
+"""CLI for performing dynamic quantization or quantization-aware training.
+
+Argument parsing occurs in :func:`parse_args`, and execution is driven by
+:func:`main`, which dispatches to either dynamic quantization or QAT fine-tune
+flows using the functions in :mod:`fer.quantization`.
+"""
+
 import argparse
 from pathlib import Path
 

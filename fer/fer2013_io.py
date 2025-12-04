@@ -2,9 +2,11 @@
 
 The helpers in this module make it easy to:
 - Load a FER-2013 formatted CSV (with `emotion`, `pixels`, `Usage` columns)
-  and run predictions with a trained model.
+  and run predictions with a trained model via
+  :func:`predict_from_fer2013_csv`.
 - Convert a standalone image (e.g., PNG) into a FER-2013 compatible example
-  that can be appended to a CSV for quick experiments.
+  that can be appended to a CSV for quick experiments with
+  :func:`image_to_fer2013_row` and :func:`append_images_to_fer2013_csv`.
 """
 
 from __future__ import annotations

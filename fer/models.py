@@ -1,3 +1,10 @@
+"""Core neural network definitions for facial emotion recognition.
+
+This module defines reusable convolutional blocks, the lightweight
+:class:`EmotionCNN` architecture, and detection wrappers such as
+:class:`FaceDetector` with convenience constructors.
+"""
+
 import torch
 from torch import nn
 

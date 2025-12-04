@@ -1,4 +1,10 @@
 #!/usr/bin/env python
+"""Notebook-export script for label-noise and confusion experiments.
+
+This file mirrors `experiments_noise.ipynb`, setting up label smoothing vs.
+standard cross-entropy training, simulating noisy labels, and plotting class
+confusion to probe robustness.
+"""
 # coding: utf-8
 # Auto-generated from notebook: experiments_noise.ipynb
 

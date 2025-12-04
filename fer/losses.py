@@ -1,3 +1,9 @@
+"""Loss functions tailored for FER training experiments.
+
+Currently exposes :class:`LabelSmoothingCE`, a configurable cross-entropy
+variant that reduces overconfidence during optimization.
+"""
+
 import torch
 from torch import nn
 

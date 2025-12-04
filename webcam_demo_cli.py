@@ -1,4 +1,9 @@
-"""Command-line entry point for the real-time webcam demo."""
+"""Command-line entry point for the real-time webcam demo.
+
+This script loads a trained model via :func:`build_model`, configures a
+:class:`FaceDetector`, and launches :func:`fer.inference.run_realtime_demo` with
+user-specified input channels and detector type.
+"""
 import argparse
 from pathlib import Path
 

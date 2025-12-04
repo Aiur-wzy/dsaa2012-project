@@ -1,4 +1,9 @@
-"""Run fairness-focused evaluation on FER-2013 models."""
+"""Run fairness-focused evaluation on FER-2013 models.
+
+The CLI loads a checkpoint with :func:`build_model`, creates evaluation splits
+with synthetic demographic groups, and renders group-level metrics through
+:func:`plot_group_metrics`. Argument handling is defined in :func:`parse_args`.
+"""
 
 import argparse
 from pathlib import Path

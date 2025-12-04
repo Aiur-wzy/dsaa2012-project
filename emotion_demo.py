@@ -1,3 +1,10 @@
+"""Minimal entry point for running the real-time emotion recognition demo.
+
+This module loads a trained :class:`EmotionCNN`, initializes a chosen
+:class:`FaceDetector`, and starts the webcam-based demo via
+:func:`fer.run_realtime_demo`.
+"""
+
 import torch
 from fer import EmotionCNN, FaceDetector, run_realtime_demo
 

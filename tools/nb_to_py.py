@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Lightweight converter from .ipynb notebooks to .py scripts without external deps."""
+"""Lightweight converter from .ipynb notebooks to .py scripts without external deps.
+
+The CLI relies on :func:`convert_notebook` to emit percent-style cell markers
+and is wired through :func:`main` for argument parsing.
+"""
 
 import argparse
 import json

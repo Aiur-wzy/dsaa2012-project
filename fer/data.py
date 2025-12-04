@@ -1,3 +1,10 @@
+"""Dataset wrappers and dataloader helpers for FER-2013.
+
+Key elements include :class:`FER2013Dataset` for handling CSV inputs, synthetic
+group assignment for fairness experiments, and :func:`build_dataloaders` for
+train/validation/test split construction.
+"""
+
 import os
 from typing import Callable, Dict, List, Optional, Tuple
 

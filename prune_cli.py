@@ -1,3 +1,10 @@
+"""CLI for structured pruning followed by optional fine-tuning.
+
+Argument parsing lives in :func:`parse_args`, and :func:`main` orchestrates
+checkpoint loading, pruning via :func:`prune_and_finetune`, and evaluation on
+validation data.
+"""
+
 import argparse
 from pathlib import Path
 
