@@ -83,13 +83,21 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
+    csv_path = Path(args.csv)
+    if not csv_path.is_file():
+        raise SystemExit(f"FER-2013 CSV not found: {csv_path}")
+
+    ckpt_path = Path(args.ckpt)
+    if not ckpt_path.is_file():
+        raise SystemExit(f"Checkpoint not found: {ckpt_path}")
+
     device = torch.device(args.device) if args.device else torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     usage = None if args.usage == "all" else args.usage
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    model = build_model(args.ckpt, args.in_chans, device)
+    model = build_model(str(ckpt_path), args.in_chans, device)
 
     conf_loader = build_loader(
         args.csv,

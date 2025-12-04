@@ -1,5 +1,6 @@
 """Convert images into FER-2013 rows and append to a CSV."""
 import argparse
+from pathlib import Path
 
 from fer import append_images_to_fer2013_csv, image_to_fer2013_row
 
@@ -16,7 +17,16 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    row = image_to_fer2013_row(args.image, emotion=args.emotion, usage=args.usage)
+    preview_image = Path(args.image)
+    if not preview_image.is_file():
+        raise SystemExit(f"Preview image not found: {preview_image}")
+
+    if args.images:
+        missing = [str(path) for path in args.images if not Path(path).is_file()]
+        if missing:
+            raise SystemExit(f"Additional image(s) not found: {', '.join(missing)}")
+
+    row = image_to_fer2013_row(str(preview_image), emotion=args.emotion, usage=args.usage)
     print("Single-row preview:")
     print(row)
     if args.images:
