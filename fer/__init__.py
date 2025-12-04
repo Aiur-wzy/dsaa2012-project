@@ -11,6 +11,9 @@ from .fairness_analysis import compute_age_groups, compute_confidence_groups, pl
 from .augment import get_train_transform, get_eval_transform, get_baseline_train_transform, mixup_data, mixup_criterion
 from .losses import LabelSmoothingCE
 from .models import EmotionCNN, count_parameters
+from .distillation import distillation_loss, train_kd_model
+from .pruning import structured_prune_model, prune_and_finetune
+from .quantization import quantize_dynamic, prepare_qat_model, convert_qat_model
 from .train import train_model, evaluate, save_checkpoint, load_checkpoint
 from .inference import FaceDetector, preprocess_face, run_realtime_demo, predict_image
 from .fer2013_io import predict_from_fer2013_csv, image_to_fer2013_row, append_images_to_fer2013_csv
@@ -36,6 +39,13 @@ __all__ = [
     "LabelSmoothingCE",
     "EmotionCNN",
     "count_parameters",
+    "distillation_loss",
+    "train_kd_model",
+    "structured_prune_model",
+    "prune_and_finetune",
+    "quantize_dynamic",
+    "prepare_qat_model",
+    "convert_qat_model",
     "train_model",
     "evaluate",
     "save_checkpoint",
