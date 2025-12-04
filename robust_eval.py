@@ -1,4 +1,9 @@
-"""Evaluate robustness of a trained FER model under common corruptions."""
+"""Evaluate robustness of a trained FER model under common corruptions.
+
+The CLI builds dataloaders, applies configurable corruption functions, and
+summarizes results through :func:`eval_under_corruption`. Argument parsing is
+handled in :func:`parse_args` and execution starts in :func:`main`.
+"""
 
 import argparse
 from pathlib import Path

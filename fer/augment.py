@@ -1,3 +1,10 @@
+"""Augmentation and tensor conversion utilities for FER images.
+
+This module defines training and evaluation augmentation pipelines along with
+MixUp helpers (:func:`mixup_data`, :func:`mixup_criterion`) tailored for the
+FER-2013 dataset.
+"""
+
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 import numpy as np

@@ -1,3 +1,10 @@
+"""Inference and preprocessing utilities for real-time FER demos.
+
+This module provides OpenCV-based face alignment (:func:`align_face`), face
+cropping via :class:`FaceDetector`, preprocessing helpers, and interactive
+demo utilities like :func:`run_realtime_demo` and :func:`predict_image`.
+"""
+
 from dataclasses import dataclass
 from typing import List, Tuple
 

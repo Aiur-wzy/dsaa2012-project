@@ -1,4 +1,9 @@
-"""Evaluation helpers for richer experiment analysis."""
+"""Evaluation helpers for richer experiment analysis.
+
+The module provides :func:`evaluate_with_confusion` for computing confusion
+matrices and classification reports, and :func:`save_confusion_outputs` for
+persisting detailed per-sample predictions.
+"""
 
 from pathlib import Path
 from typing import Dict, Iterable, Optional, Sequence, Tuple

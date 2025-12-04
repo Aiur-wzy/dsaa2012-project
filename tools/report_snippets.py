@@ -1,4 +1,8 @@
-"""Utility helpers to generate LaTeX snippets from experiment CSV outputs."""
+"""Utility helpers to generate LaTeX snippets from experiment CSV outputs.
+
+The command-line interface is driven by :func:`main`, which loads summary CSVs
+and converts metrics into table rows through :func:`csv_to_latex_rows`.
+"""
 
 import argparse
 from numbers import Number

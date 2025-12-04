@@ -1,4 +1,9 @@
-"""Convert images into FER-2013 rows and append to a CSV."""
+"""Convert images into FER-2013 rows and append to a CSV.
+
+This CLI wraps :func:`image_to_fer2013_row` for single-image previews and
+:func:`append_images_to_fer2013_csv` for bulk conversion, using arguments parsed
+in :func:`parse_args`.
+"""
 import argparse
 from pathlib import Path
 

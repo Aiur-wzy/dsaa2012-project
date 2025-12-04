@@ -1,8 +1,10 @@
 """Unified experiment runner for FER ablations.
 
-The script accepts a YAML/JSON config describing multiple experiment
-variants, launches each training run programmatically, evaluates the
-resulting model on the test split, and writes a consolidated summary CSV.
+The script accepts a YAML/JSON config describing multiple experiment variants,
+launches each training run programmatically via :func:`run_experiments`,
+evaluates the resulting model on the test split, and writes a consolidated
+summary CSV. Argument parsing lives in :func:`parse_args`, while
+:func:`apply_overrides` and :func:`run_experiment` encapsulate per-run logic.
 """
 
 from __future__ import annotations

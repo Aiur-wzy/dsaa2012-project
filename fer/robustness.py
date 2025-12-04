@@ -1,3 +1,9 @@
+"""Noise and corruption robustness helpers for FER evaluation.
+
+Functions here apply common image corruptions (blur, JPEG compression, noise),
+while :func:`evaluate_with_corruptions` scores a model across all augmentations.
+"""
+
 import cv2
 import numpy as np
 import torch

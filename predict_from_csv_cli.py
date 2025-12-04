@@ -1,4 +1,9 @@
-"""Batch predictions from a FER-2013 CSV file."""
+"""Batch prediction entry point for FER-2013 CSV files.
+
+This script loads a saved :class:`EmotionCNN` checkpoint, constructs the
+corresponding model with the desired input channels, parses CLI arguments, and
+delegates batched inference to :func:`fer.predict_from_fer2013_csv`.
+"""
 import argparse
 from pathlib import Path
 import torch

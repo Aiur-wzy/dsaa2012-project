@@ -1,3 +1,9 @@
+"""Quantization utilities for compressing trained FER models.
+
+Provides dynamic quantization wrappers as well as helpers to prepare and
+convert models for quantization-aware training (QAT).
+"""
+
 from typing import Iterable, Type
 
 import torch

@@ -1,3 +1,9 @@
+"""Model pruning helpers for compressing the FER CNN.
+
+Functions here apply structured pruning, fine-tune pruned checkpoints, and
+export sparsified weights for later evaluation.
+"""
+
 import io
 from pathlib import Path
 from typing import Dict

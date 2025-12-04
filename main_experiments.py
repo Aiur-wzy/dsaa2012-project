@@ -1,4 +1,10 @@
 #!/usr/bin/env python
+"""Notebook-export script for running the main FER experiments.
+
+This auto-generated file mirrors the `main_experiments.ipynb` notebook and
+contains the training, robustness, fairness, and deployment evaluation flows
+used in the report. Each cell corresponds to the original notebook structure.
+"""
 # coding: utf-8
 # Auto-generated from notebook: main_experiments.ipynb
 

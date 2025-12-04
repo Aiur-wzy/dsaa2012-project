@@ -1,3 +1,10 @@
+"""Command-line interface for evaluating trained EmotionCNN checkpoints.
+
+The script parses basic dataset and checkpoint arguments, builds dataloaders,
+runs evaluation with confusion-matrix reporting, and optionally saves
+misclassified image snippets.
+"""
+
 import argparse
 import json
 from pathlib import Path

@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+"""Notebook-export script for the original FER demo draft.
+
+This file mirrors `draft.ipynb`, covering dataset inspection, baseline
+training, evaluation, and OpenCV-based demo steps in a linear Python format.
+"""
 # coding: utf-8
 # Auto-generated from notebook: draft.ipynb
 

@@ -1,3 +1,9 @@
+"""Knowledge distillation training routines for the FER model.
+
+Includes the soft-label distillation loss, student/teacher training loop in
+:func:`train_kd_model`, and logging helpers for experiment tracking.
+"""
+
 from argparse import Namespace
 from pathlib import Path
 from typing import Dict, Iterable, Optional
