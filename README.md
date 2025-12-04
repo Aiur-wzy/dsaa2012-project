@@ -34,6 +34,13 @@ Key flags to control experiments:
 - `--width-mult` scales the CNN capacity; `--in-chans 3` replicates grayscale channels for 3-channel backbones.
 - `--workers` controls dataloader workers; set to 0 for Windows/CPU-only environments.
 
+Parameter guide:
+- `--csv` points to the FER-2013 CSV; relative or absolute paths both work.
+- `--epochs` sets total training epochs; increase for more convergence time.
+- `--batch-size` controls GPU/CPU memory use and gradient estimate stability.
+- `--in-chans` switches between grayscale (1) and 3-channel inputs when using different backbones.
+- `--ckpt-dir` is the folder where checkpoints/metrics are written; it will be created if missing.
+
 Artifacts written under `--ckpt-dir` include `latest.pt`, `best.pt`, a per-epoch `history.csv`, and a `process.json` summary for downstream notebooks and visualizations. The trainer automatically reports best validation accuracy when finished.【F:fer/train.py†L111-L193】【F:fer/train.py†L201-L273】
 
 ## 4) Evaluate a Checkpoint
@@ -46,6 +53,13 @@ python evaluation.py   --csv path/to/fer2013.csv   --ckpt runs/exp1/best.pt   --
 
 Outputs include JSON metrics, optional confusion-matrix `.npy/.csv` files, and a classification report. The script reconstructs the model with the specified `--in-chans` and `--width-mult` before computing accuracy/loss.【F:evaluation.py†L1-L64】【F:evaluation.py†L66-L108】
 
+Parameter guide:
+- `--csv` location of the FER-2013 data file used to build the evaluation dataloader.
+- `--ckpt` checkpoint path to load the trained weights.
+- `--split {val,test,all}` chooses `PublicTest`, `PrivateTest`, or the full dataset.
+- `--compute-confusion` toggles saving confusion matrix artifacts.
+- `--save-dir` output directory for JSON metrics, reports, and optional matrices.
+
 ## 5) Robustness Sweeps
 
 Probe accuracy under common corruptions (brightness/contrast, blur, JPEG compression, rotations):
@@ -55,6 +69,12 @@ python robust_eval.py   --csv fer2013.csv   --ckpt runs/exp1/best.pt   --split t
 ```
 
 The script computes clean accuracy, evaluates each corruption/severity, saves a CSV table plus a Matplotlib summary plot, and writes a short markdown summary. Corruption functions come from `fer.robustness` and are wired in `build_corruptions`.【F:robust_eval.py†L1-L113】【F:robust_eval.py†L115-L174】
+
+Parameter guide:
+- `--csv` FER-2013 CSV to read clean and corrupted inputs from.
+- `--ckpt` model checkpoint for evaluation.
+- `--split` selects the data partition to corrupt (`test` maps to `PrivateTest`).
+- `--output-dir` destination for the corruption-wise metrics, plots, and markdown summary.
 
 ## 6) Run the Webcam Demo
 
@@ -66,6 +86,12 @@ python webcam_demo_cli.py   --ckpt runs/exp1/best.pt   --in-chans 1   --detector
 
 This wraps `run_realtime_demo` to handle face detection (Haar/DNN), optional eye-alignment, preprocessing to 48×48, and on-screen labels/scores. It also prints average FPS plus per-stage timings on exit.【F:webcam_demo_cli.py†L1-L35】【F:fer/inference.py†L1-L124】【F:fer/inference.py†L126-L206】
 
+Parameter guide:
+- `--ckpt` checkpoint containing the trained model weights.
+- `--in-chans` sets the expected input channels (1 for grayscale training, 3 for RGB-trained backbones).
+- `--detector {haar,dnn}` chooses the face detector; Haar is lightweight, DNN is more robust but heavier.
+- Additional optional flags in the script enable eye alignment, resizing hints, and camera index selection if you need a non-default webcam.
+
 ## 7) Batch Predictions from a FER-2013 CSV
 
 Start the process by running a Python script (`.py` file) with a command line like:
@@ -75,6 +101,12 @@ python predict_from_csv_cli.py   --ckpt runs/exp1/best.pt   --csv data_example.t
 ```
 
 The script builds a dataloader, runs softmax to obtain confidences, and prints label indices/names for each row (optionally filtered by `Usage`).【F:predict_from_csv_cli.py†L1-L35】【F:fer/fer2013_io.py†L23-L74】
+
+Parameter guide:
+- `--ckpt` checkpoint path for the inference model.
+- `--csv` FER-2013-style CSV to read inputs from.
+- `--usage {Training,PublicTest,PrivateTest,all}` filters which rows to score; `all` disables filtering.
+- `--in-chans` must match training input channels; mismatch will degrade results.
 
 ## 8) Convert Images into FER-2013 Rows
 
@@ -86,6 +118,14 @@ python images_to_fer_cli.py   --image face.png   --images face.png another_face.
 
 The helper loads grayscale images, resizes to 48×48, flattens to a space-delimited pixel string, previews a single row, and optionally appends rows to a CSV (creating it if missing).【F:images_to_fer_cli.py†L1-L25】【F:fer/fer2013_io.py†L76-L148】
 
+Parameter guide:
+- `--image` single image path to convert; useful when testing one file.
+- `--images` list of additional image paths (space-separated) for batch conversion.
+- `--output` target CSV; the script creates it with FER-2013 headers if it does not exist and appends rows otherwise.
+- `--emotion` integer label (0–6) to assign to every converted row.
+- `--usage {Training,PublicTest,PrivateTest}` sets the FER split tag stored alongside the pixels.
+- The CLI previews one generated row in the terminal before writing, so you can double-check pixel strings.
+
 ## 9) Export for Deployment
 
 Export TorchScript and ONNX artifacts (optionally quantized) and benchmark latency:
@@ -95,6 +135,13 @@ python export_model.py   --checkpoint runs/exp1/best.pt   --output-dir exports  
 ```
 
 The script reconstructs the model, traces TorchScript, exports ONNX with dynamic batch axes, reports file sizes, benchmarks average inference latency, and—if `--quantize`—produces a dynamically quantized TorchScript plus optional accuracy estimates on a subset of the dataset.【F:export_model.py†L1-L126】
+
+Parameter guide:
+- `--checkpoint` weights to export and benchmark.
+- `--output-dir` folder where TorchScript/ONNX/metadata files are saved.
+- `--in-chans` ensures the exported model uses the correct input channel count.
+- `--quantize` toggles dynamic quantization for smaller TorchScript artifacts.
+- `--evaluate-csv` optional FER-2013 CSV path to compute accuracy after export.
 
 ## 10) Notebooks & Autogenerated Scripts
 
