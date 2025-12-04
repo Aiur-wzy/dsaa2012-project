@@ -75,21 +75,6 @@ def run_experiment(run_dir: str, loss: str = "ce", smoothing_eps: float = 0.1):
         "report": report,
     }
 
-ce_results = run_experiment("runs/ce_baseline", loss="ce")
-ls_results = run_experiment("runs/label_smoothing_eps01", loss="label_smoothing", smoothing_eps=0.1)
-
-comparison_df = pd.DataFrame(
-    [
-        {"experiment": "CrossEntropy", "test_acc": ce_results["test_acc"], "test_loss": ce_results["test_loss"]},
-        {
-            "experiment": "LabelSmoothing (eps=0.1)",
-            "test_acc": ls_results["test_acc"],
-            "test_loss": ls_results["test_loss"],
-        },
-    ]
-)
-comparison_df
-
 def plot_confusion(cm, title):
     norm_cm = cm / cm.sum(axis=1, keepdims=True)
     fig, ax = plt.subplots(figsize=(8, 6))
@@ -108,8 +93,35 @@ def plot_confusion(cm, title):
     plt.tight_layout()
     return fig
 
-plot_confusion(ce_results["cm"], "Baseline cross-entropy confusion")
-plot_confusion(ls_results["cm"], "Label smoothing confusion (eps=0.1)")
+
+def main():
+    ce_results = run_experiment("runs/ce_baseline", loss="ce")
+    ls_results = run_experiment(
+        "runs/label_smoothing_eps01", loss="label_smoothing", smoothing_eps=0.1
+    )
+
+    comparison_df = pd.DataFrame(
+        [
+            {
+                "experiment": "CrossEntropy",
+                "test_acc": ce_results["test_acc"],
+                "test_loss": ce_results["test_loss"],
+            },
+            {
+                "experiment": "LabelSmoothing (eps=0.1)",
+                "test_acc": ls_results["test_acc"],
+                "test_loss": ls_results["test_loss"],
+            },
+        ]
+    )
+    print(comparison_df)
+
+    plot_confusion(ce_results["cm"], "Baseline cross-entropy confusion")
+    plot_confusion(ls_results["cm"], "Label smoothing confusion (eps=0.1)")
+
+
+if __name__ == "__main__":
+    main()
 
 
 def inject_noise(df: pd.DataFrame, flip_prob: float = 0.1) -> pd.DataFrame:
