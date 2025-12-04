@@ -1,0 +1,40 @@
+\documentclass[12pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{float}
+
+\title{Final Report}
+\author{ }
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This report summarizes experiment results, robustness analyses, and fairness evaluations for the trained models. Each section below automatically pulls in generated tables so the report can be recompiled after new experiments run.
+\end{abstract}
+
+\section{Introduction}
+Provide an overview of the objectives, datasets, and evaluation metrics used throughout the experiments.
+
+\section{Experimental Results}
+The primary experiment outcomes are collected in Table~\ref{tab:experiments}. Update the corresponding fragment before recompiling to reflect the latest runs.
+
+\input{tables/experiments.tex}
+
+\section{Robustness Evaluation}
+Robustness checks (e.g., noise resilience, distribution shifts) are summarized below. Replace the fragment with regenerated results as new tests are executed.
+
+\input{tables/robustness.tex}
+
+\section{Fairness Analysis}
+Fairness metrics and subgroup performance are tracked here. Regenerate the fragment when rerunning fairness evaluations.
+
+\input{tables/fairness.tex}
+
+\section{Conclusion}
+Summarize key findings, limitations, and future work.
+
+\end{document}
