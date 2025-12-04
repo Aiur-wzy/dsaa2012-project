@@ -30,9 +30,30 @@ def load_model(arch: str, in_chans: int, num_classes: int, width_mult: float, ck
         raise ValueError(f"Unsupported architecture: {arch}")
 
     if ckpt:
-        state = torch.load(ckpt, map_location=device)
-        state_dict = state["state_dict"] if "state_dict" in state else state
-        model.load_state_dict(state_dict)
+        try:
+            state = torch.load(ckpt, map_location=device)
+        except Exception as exc:  # pylint: disable=broad-except
+            raise SystemExit(f"Failed to load checkpoint {ckpt}: {exc}") from exc
+
+        if "state_dict" in state:
+            state_dict = state["state_dict"]
+        elif isinstance(state, dict):
+            state_dict = state
+        else:
+            raise SystemExit(
+                f"Checkpoint {ckpt} did not contain a state_dict. "
+                "Provide a file saved with torch.save(model.state_dict())."
+            )
+
+        try:
+            model.load_state_dict(state_dict)
+        except RuntimeError as exc:
+            raise SystemExit(
+                "Checkpoint parameters did not match the requested architecture. "
+                "Verify --teacher-arch/--student-arch, in_chans, and width_mult "
+                "align with the checkpoint that was trained.\n"
+                f"Underlying error: {exc}"
+            ) from exc
 
     model.to(device)
     return model
