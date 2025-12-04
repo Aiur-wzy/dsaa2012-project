@@ -24,12 +24,7 @@ The listed requirements cover training, evaluation, and the webcam demo. Noteboo
 Launch the bundled trainer, which handles dataloaders, augmentations, checkpoints, and process metadata:
 
 ```bash
-python -m fer.train \
-  --csv path/to/fer2013.csv \
-  --epochs 30 \
-  --batch-size 128 \
-  --in-chans 1 \
-  --ckpt-dir runs/exp1
+python -m fer.train --csv path/to/fer2013.csv --epochs 30  --batch-size 128 --in-chans 1  --ckpt-dir runs/exp1
 ```
 
 Key flags to control experiments:
@@ -46,12 +41,7 @@ Artifacts written under `--ckpt-dir` include `latest.pt`, `best.pt`, a per-epoch
 Run standalone evaluation on validation (`PublicTest`) or test (`PrivateTest`) splits:
 
 ```bash
-python evaluation.py \
-  --csv path/to/fer2013.csv \
-  --ckpt runs/exp1/best.pt \
-  --split test \
-  --compute-confusion \
-  --save-dir runs/analysis
+python evaluation.py   --csv path/to/fer2013.csv   --ckpt runs/exp1/best.pt   --split test   --compute-confusion   --save-dir runs/analysis
 ```
 
 Outputs include JSON metrics, optional confusion-matrix `.npy/.csv` files, and a classification report. The script reconstructs the model with the specified `--in-chans` and `--width-mult` before computing accuracy/loss.【F:evaluation.py†L1-L64】【F:evaluation.py†L66-L108】
@@ -61,11 +51,7 @@ Outputs include JSON metrics, optional confusion-matrix `.npy/.csv` files, and a
 Probe accuracy under common corruptions (brightness/contrast, blur, JPEG compression, rotations):
 
 ```bash
-python robust_eval.py \
-  --csv path/to/fer2013.csv \
-  --ckpt runs/exp1/best.pt \
-  --split test \
-  --output-dir runs/robustness
+python robust_eval.py   --csv fer2013.csv   --ckpt runs/exp1/best.pt   --split test   --output-dir runs/robustness
 ```
 
 The script computes clean accuracy, evaluates each corruption/severity, saves a CSV table plus a Matplotlib summary plot, and writes a short markdown summary. Corruption functions come from `fer.robustness` and are wired in `build_corruptions`.【F:robust_eval.py†L1-L113】【F:robust_eval.py†L115-L174】
@@ -136,12 +122,7 @@ The helper loads grayscale images, resizes to 48×48, flattens to a space-delimi
 Export TorchScript and ONNX artifacts (optionally quantized) and benchmark latency:
 
 ```bash
-python export_model.py \
-  --checkpoint runs/exp1/best.pt \
-  --output-dir exports \
-  --in-chans 1 \
-  --quantize \
-  --evaluate-csv path/to/fer2013.csv
+python export_model.py   --checkpoint runs/exp1/best.pt   --output-dir exports   --in-chans 1   --quantize   --evaluate-csv fer2013.csv
 ```
 
 The script reconstructs the model, traces TorchScript, exports ONNX with dynamic batch axes, reports file sizes, benchmarks average inference latency, and—if `--quantize`—produces a dynamically quantized TorchScript plus optional accuracy estimates on a subset of the dataset.【F:export_model.py†L1-L126】
