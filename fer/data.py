@@ -34,15 +34,23 @@ class FER2013Dataset(Dataset):
         in_chans: int = 1,
         return_group: bool = False,
     ) -> None:
-        if isinstance(csv_or_df, (str, os.PathLike)):
-            csv_path = os.fspath(csv_or_df)
-            if not os.path.exists(csv_path):
-                raise FileNotFoundError(csv_path)
-            df = pd.read_csv(csv_path)
-        elif isinstance(csv_or_df, pd.DataFrame):
+        if isinstance(csv_or_df, pd.DataFrame):
             df = csv_or_df.copy()
         else:
-            raise TypeError("csv_or_df must be a path-like object or pandas DataFrame")
+            try:
+                csv_path = os.fspath(csv_or_df)
+            except TypeError:
+                # Accept file-like objects or any pandas-compatible buffer
+                try:
+                    df = pd.read_csv(csv_or_df)
+                except Exception as exc:  # pragma: no cover - defensive guard
+                    raise TypeError(
+                        "csv_or_df must be a path-like object, file-like object, or pandas DataFrame"
+                    ) from exc
+            else:
+                if not os.path.exists(csv_path):
+                    raise FileNotFoundError(csv_path)
+                df = pd.read_csv(csv_path)
 
         if usage is not None:
             df = df[df["Usage"] == usage].reset_index(drop=True)
