@@ -99,15 +99,28 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--quantize", action="store_true", help="Also export a dynamically quantized TorchScript model")
     parser.add_argument("--evaluate-csv", type=Path, help="Optional FER2013 CSV to estimate accuracy drop")
     parser.add_argument("--device", default="cpu", help="Export device (default cpu; use cuda if available)")
+    parser.add_argument("--dry-run", action="store_true", help="Validate inputs without exporting")
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
+    if not args.checkpoint.is_file():
+        raise SystemExit(f"Checkpoint not found: {args.checkpoint}")
+
+    if args.evaluate_csv and not args.evaluate_csv.is_file():
+        raise SystemExit(
+            f"FER-2013 CSV not found: {args.evaluate_csv}; expected columns: emotion, pixels, Usage"
+        )
+
     device = torch.device(args.device)
     args.output_dir.mkdir(parents=True, exist_ok=True)
 
     model = build_model(args.checkpoint, device, args.in_chans, args.num_classes, args.width_mult)
+    if args.dry_run:
+        print("Dry run successful: checkpoint and CSV paths look valid.")
+        return
+
     dummy = torch.randn(1, args.in_chans, 48, 48, device=device)
 
     ts_path = args.output_dir / "model_scripted.pt"
